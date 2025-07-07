@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "python-experiments-bootstrap"
+name = "experiments-2025-aaai-sparseful"
 version = "0.1.0"
 description = ""
 authors = ["Davide Domini <davide.domini@unibo.it>"]
