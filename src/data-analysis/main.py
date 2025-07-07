@@ -109,7 +109,7 @@ def select_top_correlated_sensors_split(
     data: pd.DataFrame,
     n_clusters: int = 6,
     top_k_train: int = 10,
-    top_k_test: int = 3
+    top_k_test: int = 10
 ):
     corr = data.corr()
     link = linkage(corr, method="ward")
