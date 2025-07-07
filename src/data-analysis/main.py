@@ -88,25 +88,58 @@ def plot_clustered_nodes(data, adjacency, n_clusters, chart_path):
     plt.savefig(f'{chart_path}sensor_clusters.pdf')
 
 
-def select_top_correlated_sensors(data: pd.DataFrame, n_clusters: int = 6, top_k: int = 10):
+# def select_top_correlated_sensors(data: pd.DataFrame, n_clusters: int = 6, top_k: int = 10):
+#     corr = data.corr()
+#     link = linkage(corr, method="ward")
+#     cluster_labels = fcluster(link, t=n_clusters, criterion="maxclust")
+#     sensor_to_cluster = dict(zip(data.columns, cluster_labels))
+#     cluster_map = dict()
+#     selected_columns = []
+#     for cl in sorted(set(cluster_labels)):
+#         cluster_cols = [col for col, lab in sensor_to_cluster.items() if lab == cl]
+#         sub_corr = corr.loc[cluster_cols, cluster_cols].copy()
+#         avg_corr = sub_corr.mean(axis=1)
+#         top_sensors = avg_corr.sort_values(ascending=False).head(top_k).index.tolist()
+#         cluster_map[cl] = top_sensors
+#         selected_columns.extend(top_sensors)
+#     filtered_data = data[selected_columns]
+#     return filtered_data, cluster_map
+
+def select_top_correlated_sensors_split(
+    data: pd.DataFrame,
+    n_clusters: int = 6,
+    top_k_train: int = 10,
+    top_k_test: int = 3
+):
     corr = data.corr()
     link = linkage(corr, method="ward")
     cluster_labels = fcluster(link, t=n_clusters, criterion="maxclust")
     sensor_to_cluster = dict(zip(data.columns, cluster_labels))
-    cluster_map = dict()
-    selected_columns = []
+
+    train_map = dict()
+    test_map = dict()
+    train_columns = []
+    test_columns = []
+
     for cl in sorted(set(cluster_labels)):
         cluster_cols = [col for col, lab in sensor_to_cluster.items() if lab == cl]
         sub_corr = corr.loc[cluster_cols, cluster_cols].copy()
         avg_corr = sub_corr.mean(axis=1)
-        top_sensors = avg_corr.sort_values(ascending=False).head(top_k).index.tolist()
-        cluster_map[cl] = top_sensors
-        selected_columns.extend(top_sensors)
-    filtered_data = data[selected_columns]
-    return filtered_data, cluster_map
+        sorted_sensors = avg_corr.sort_values(ascending=False).index.tolist()
+        top_train = sorted_sensors[:top_k_train]
+        top_test = sorted_sensors[top_k_train: top_k_train + top_k_test]
+        train_map[cl] = top_train
+        test_map[cl] = top_test
+        train_columns.extend(top_train)
+        test_columns.extend(top_test)
+
+    train_data = data[train_columns]
+    test_data = data[test_columns]
+
+    return train_data, test_data, train_map, test_map
 
 
-def save_clusters(clusters_map, data_path):
+def save_clusters(clusters_map, split, data_path):
     sorted_clusters = sorted(clusters_map.keys())
     col_data = {}
     for cl in sorted_clusters:
@@ -114,7 +147,7 @@ def save_clusters(clusters_map, data_path):
         col_data[col_name] = clusters_map[cl]
     df = pd.DataFrame.from_dict(col_data, orient='columns')
     
-    df.to_csv(f'{data_path}clusters.csv', index=False)
+    df.to_csv(f'{data_path}clusters-{split}.csv', index=False)
 
 
 if __name__ == '__main__':
@@ -131,6 +164,8 @@ if __name__ == '__main__':
     plot_correlation_matirx(df, chart_path)
     plot_clustered_nodes(df, adjacency, 6, chart_path)
 
-    filtered_df, clusters_map = select_top_correlated_sensors(df)
-    filtered_df.to_csv(f'{data_path}reduced_METR-LA.csv', index=False)
-    save_clusters(clusters_map, data_path)
+    filtered_df_train, filtered_df_test, clusters_map_train, clusters_map_test = select_top_correlated_sensors_split(df)
+    filtered_df_train.to_csv(f'{data_path}reduced_METR-LA.csv', index=False)
+    filtered_df_test.to_csv(f'{data_path}reduced_METR-LA-test.csv', index=False)
+    save_clusters(clusters_map_train, 'train', data_path)
+    save_clusters(clusters_map_test, 'test', data_path)
