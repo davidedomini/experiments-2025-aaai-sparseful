@@ -88,6 +88,34 @@ def plot_clustered_nodes(data, adjacency, n_clusters, chart_path):
     plt.savefig(f'{chart_path}sensor_clusters.pdf')
 
 
+def select_top_correlated_sensors(data: pd.DataFrame, n_clusters: int = 6, top_k: int = 10):
+    corr = data.corr()
+    link = linkage(corr, method="ward")
+    cluster_labels = fcluster(link, t=n_clusters, criterion="maxclust")
+    sensor_to_cluster = dict(zip(data.columns, cluster_labels))
+    cluster_map = dict()
+    selected_columns = []
+    for cl in sorted(set(cluster_labels)):
+        cluster_cols = [col for col, lab in sensor_to_cluster.items() if lab == cl]
+        sub_corr = corr.loc[cluster_cols, cluster_cols].copy()
+        avg_corr = sub_corr.mean(axis=1)
+        top_sensors = avg_corr.sort_values(ascending=False).head(top_k).index.tolist()
+        cluster_map[cl] = top_sensors
+        selected_columns.extend(top_sensors)
+    filtered_data = data[selected_columns]
+    return filtered_data, cluster_map
+
+
+def save_clusters(clusters_map, data_path):
+    sorted_clusters = sorted(clusters_map.keys())
+    col_data = {}
+    for cl in sorted_clusters:
+        col_name = f"cluster-{cl}"
+        col_data[col_name] = clusters_map[cl]
+    df = pd.DataFrame.from_dict(col_data, orient='columns')
+    
+    df.to_csv(f'{data_path}clusters.csv', index=False)
+
 
 if __name__ == '__main__':
     data_path = 'data/METR-LA/'
@@ -102,3 +130,7 @@ if __name__ == '__main__':
     # Charts
     plot_correlation_matirx(df, chart_path)
     plot_clustered_nodes(df, adjacency, 6, chart_path)
+
+    filtered_df, clusters_map = select_top_correlated_sensors(df)
+    filtered_df.to_csv(f'{data_path}reduced_METR-LA.csv', index=False)
+    save_clusters(clusters_map, data_path)
