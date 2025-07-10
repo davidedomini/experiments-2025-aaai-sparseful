@@ -2,6 +2,7 @@ import torch
 import pandas as pd
 import torch.nn as nn
 from sklearn.metrics import r2_score
+from sklearn.preprocessing import StandardScaler
 from torch.utils.data import Dataset, DataLoader
 
 
@@ -37,11 +38,12 @@ class SimpleRNN(nn.Module):
         last_hidden = out[:, -1, :] 
         y_pred = self.fc(last_hidden) 
         return y_pred
+    
 
-
-def train_model(model, dataloader, num_epochs=10, lr=1e-3, device='cpu'):
+def train_model(model, dataloader, num_epochs=10, lr=1e-3, device='cuda'):
     model.to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=4, gamma=0.5)
     criterion = nn.MSELoss()
 
     for epoch in range(num_epochs):
@@ -58,28 +60,10 @@ def train_model(model, dataloader, num_epochs=10, lr=1e-3, device='cpu'):
             optimizer.step()
 
             epoch_loss += loss.item() * x_batch.size(0)
-
+        scheduler.step()
         avg_loss = epoch_loss / len(dataloader.dataset)
         print(f"Epoch {epoch+1}/{num_epochs}, Loss: {avg_loss:.6f}")
 
-
-# def evaluate_model(model, dataloader, device='cpu'):
-#     model.to(device)
-#     model.eval()
-#     criterion = nn.MSELoss()
-#     total_loss = 0.0
-
-#     with torch.no_grad():
-#         for x_batch, y_batch in dataloader:
-#             x_batch = x_batch.to(device)
-#             y_batch = y_batch.to(device)
-
-#             preds = model(x_batch)
-#             loss = criterion(preds, y_batch)
-#             total_loss += loss.item() * x_batch.size(0)
-
-#     avg_loss = total_loss / len(dataloader.dataset)
-#     return avg_loss
 
 def evaluate_model(model, dataloader, device='cpu'):
     model.to(device)
@@ -99,17 +83,14 @@ def evaluate_model(model, dataloader, device='cpu'):
             loss = criterion(preds, y_batch)
             total_loss += loss.item() * x_batch.size(0)
 
-            # Accumula per R2
             all_preds.append(preds.cpu())
             all_targets.append(y_batch.cpu())
 
     avg_loss = total_loss / len(dataloader.dataset)
 
-    # Concatena tutto
     y_true = torch.cat(all_targets, dim=0).numpy()
     y_pred = torch.cat(all_preds, dim=0).numpy()
 
-    # Calcola R2
     r2 = r2_score(y_true, y_pred)
 
     return avg_loss, r2
@@ -119,20 +100,33 @@ if __name__ == "__main__":
 
     WINDOW_SIZE = 30
     HORIZON = 1
-    BATCH_SIZE = 32
-    HIDDEN_SIZE = 64
+    BATCH_SIZE = 64
+    HIDDEN_SIZE = 128
     NUM_EPOCHS = 20
 
     df = pd.read_csv('data/METR-LA/reduced_METR-LA.csv')
     df_test = pd.read_csv('data/METR-LA/reduced_METR-LA-test.csv') 
 
-    dataset = TimeSeriesDataset(df, window_size=WINDOW_SIZE, horizon=HORIZON)
+    scaler = StandardScaler()
+
+    scaler.fit(df.values)
+
+    df_train_scaled = pd.DataFrame(scaler.transform(df.values),
+                               index=df.index,
+                               columns=df.columns)
+
+    df_test_scaled = pd.DataFrame(scaler.transform(df_test.values),
+                              index=df_test.index,
+                              columns=df_test.columns)
+
+    dataset = TimeSeriesDataset(df_train_scaled, window_size=WINDOW_SIZE, horizon=HORIZON)
     dataloader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True)
 
-    test_dataset = TimeSeriesDataset(df_test, window_size=WINDOW_SIZE, horizon=HORIZON)
+    test_dataset = TimeSeriesDataset(df_test_scaled, window_size=WINDOW_SIZE, horizon=HORIZON)
     test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False)
 
-    model = SimpleRNN(input_size=df.shape[1], hidden_size=HIDDEN_SIZE)
+    model = SimpleRNN(input_size=df_train_scaled.shape[1], hidden_size=HIDDEN_SIZE, num_layers=4)
+    print(model)
     train_model(model, dataloader, num_epochs=NUM_EPOCHS)
 
     test_loss, r2 = evaluate_model(model, test_loader)
