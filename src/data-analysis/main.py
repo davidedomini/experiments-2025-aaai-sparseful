@@ -156,11 +156,15 @@ def select_top_correlated_sensors_split(
 def save_clusters(clusters_map, split, data_path):
     sorted_clusters = sorted(clusters_map.keys())
     col_data = {}
+    print('---------------------------------------------------------------------')
+    print(split)
+    for cl in sorted_clusters:
+        print(len(clusters_map[cl]))
     for cl in sorted_clusters:
         col_name = f"cluster-{cl}"
         col_data[col_name] = clusters_map[cl]
     df = pd.DataFrame.from_dict(col_data, orient='columns')
-    
+
     df.to_csv(f'{data_path}clusters-{split}.csv', index=False)
 
 
@@ -178,7 +182,7 @@ if __name__ == '__main__':
     plot_correlation_matrix(df, chart_path)
     plot_clustered_nodes(df, adjacency, 6, chart_path)
 
-    filtered_df_train, filtered_df_val, filtered_df_test, clusters_map_train, clusters_map_val, clusters_map_test = select_top_correlated_sensors_split(df)
+    filtered_df_train, filtered_df_val, filtered_df_test, clusters_map_train, clusters_map_val, clusters_map_test = select_top_correlated_sensors_split(df, 6, 6)
     filtered_df_train.to_csv(f'{data_path}reduced_METR-LA-train.csv', index=False)
     filtered_df_val.to_csv(f'{data_path}reduced_METR-LA-val.csv', index=False)
     filtered_df_test.to_csv(f'{data_path}reduced_METR-LA-test.csv', index=False)
