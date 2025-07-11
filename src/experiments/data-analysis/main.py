@@ -176,6 +176,7 @@ if __name__ == '__main__':
 
     # Load data
     df = pd.read_hdf(f'{data_path}METR-LA.h5')
+    print(df.shape)
     adjacency = load_adjacency_matrix(f'{data_path}adj_METR-LA.pkl')
 
     # Charts

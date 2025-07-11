@@ -4,6 +4,7 @@ import torch.nn as nn
 from sklearn.metrics import r2_score
 from torch.utils.data import Dataset
 
+
 class TimeSeriesDataset(Dataset):
     def __init__(self, data: pd.DataFrame, window_size: int, horizon: int = 1):
         """
@@ -20,7 +21,7 @@ class TimeSeriesDataset(Dataset):
         return len(self.data) - self.window_size - self.horizon + 1
 
     def __getitem__(self, idx):
-        x = self.data[idx : idx + self.window_size]
+        x = self.data[idx: idx + self.window_size]
         y = self.data[idx + self.window_size + self.horizon - 1]
         return x, y
 
@@ -33,10 +34,11 @@ class SimpleRNN(nn.Module):
 
     def forward(self, x):
         out, _ = self.rnn(x)
-        last_hidden = out[:, -1, :] 
-        y_pred = self.fc(last_hidden) 
+        last_hidden = out[:, -1, :]
+        y_pred = self.fc(last_hidden)
         return y_pred
-    
+
+
 def train_model(model, train_dataloader, validation_dataloader, num_epochs=10, lr=1e-3, device='cpu'):
     model.to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
@@ -67,8 +69,9 @@ def train_model(model, train_dataloader, validation_dataloader, num_epochs=10, l
         train_losses.append(avg_loss)
         validation_losses.append(val_loss)
         validation_r2s.append(val_r2)
-        #print(f"Epoch {epoch+1}/{num_epochs}, Loss: {avg_loss:.6f}")
+        # print(f"Epoch {epoch+1}/{num_epochs}, Loss: {avg_loss:.6f}")
     return train_losses, validation_losses, validation_r2s
+
 
 def evaluate_model(model, dataloader, device='cpu'):
     model.to(device)
