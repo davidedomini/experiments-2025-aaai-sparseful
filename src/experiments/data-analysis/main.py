@@ -95,69 +95,74 @@ from scipy.cluster.hierarchy import linkage, fcluster
 def select_top_correlated_sensors_split(
         data: pd.DataFrame,
         n_clusters: int = 6,
-        n_per_group: int = 5
+        top_n_per_cluster: int = 10
 ):
-    # Compute correlation matrix
+    """
+    Clusters sensors and selects top N most correlated sensors per cluster,
+    then splits the data into train, validation, and test sets.
+
+    Parameters:
+    - data: DataFrame with time series data from sensors.
+    - n_clusters: Number of clusters to group sensors.
+    - top_n_per_cluster: Number of top correlated sensors to select per cluster.
+
+    Returns:
+    - train_data: First 70% of rows for selected sensors.
+    - val_data: Next 15% of rows for selected sensors.
+    - test_data: Last 15% of rows for selected sensors.
+    - cluster_map: dict mapping cluster id -> list of selected sensor names.
+    """
+    # Correlation matrix between sensors
     corr = data.corr()
 
     # Hierarchical clustering
     link = linkage(corr, method="ward")
     cluster_labels = fcluster(link, t=n_clusters, criterion="maxclust")
 
-    # Map sensors to clusters
+    # Map each sensor to its cluster
     sensor_to_cluster = dict(zip(data.columns, cluster_labels))
 
-    # Initialize mappings and selected columns
-    train_map = dict()
-    val_map = dict()
-    test_map = dict()
+    cluster_map = {}
+    selected_columns = []
 
-    train_columns = []
-    val_columns = []
-    test_columns = []
-
-    # For each cluster
+    # Select top N correlated sensors per cluster
     for cl in sorted(set(cluster_labels)):
-        # Sensors in the cluster
+        # Sensors in this cluster
         cluster_cols = [col for col, lab in sensor_to_cluster.items() if lab == cl]
 
         # Sub-correlation matrix
-        sub_corr = corr.loc[cluster_cols, cluster_cols].copy()
+        sub_corr = corr.loc[cluster_cols, cluster_cols]
 
-        # Average correlation per sensor
+        # Compute average correlation per sensor within the cluster
         avg_corr = sub_corr.mean(axis=1)
 
-        # Sort sensors descending by avg correlation
+        # Sort sensors by average correlation
         sorted_sensors = avg_corr.sort_values(ascending=False).index.tolist()
 
-        # Select N sensors per group
-        top_train = sorted_sensors[:n_per_group]
-        top_val = sorted_sensors[n_per_group:n_per_group * 2]
-        top_test = sorted_sensors[n_per_group * 2:n_per_group * 3]
+        # Take top N sensors
+        top_sensors = sorted_sensors[:top_n_per_cluster]
 
-        # Store mapping
-        train_map[cl] = top_train
-        val_map[cl] = top_val
-        test_map[cl] = top_test
+        cluster_map[cl] = top_sensors
+        selected_columns.extend(top_sensors)
 
-        # Append to global lists
-        train_columns.extend(top_train)
-        val_columns.extend(top_val)
-        test_columns.extend(top_test)
+    # Filter the data to keep only the selected columns
+    selected_data = data[selected_columns]
 
-    # Subset data
-    train_data = data[train_columns]
-    val_data = data[val_columns]
-    test_data = data[test_columns]
+    # Temporal split: 70% train, 15% val, 15% test
+    n_rows = len(selected_data)
+    train_end = int(0.7 * n_rows)
+    val_end = int(0.85 * n_rows)
 
-    return train_data, val_data, test_data, train_map, val_map, test_map
+    train_data = selected_data.iloc[:train_end].reset_index(drop=True)
+    val_data = selected_data.iloc[train_end:val_end].reset_index(drop=True)
+    test_data = selected_data.iloc[val_end:].reset_index(drop=True)
+
+    return train_data, val_data, test_data, cluster_map
 
 
-def save_clusters(clusters_map, split, data_path):
+def save_clusters(clusters_map, data_path):
     sorted_clusters = sorted(clusters_map.keys())
     col_data = {}
-    print('---------------------------------------------------------------------')
-    print(split)
     for cl in sorted_clusters:
         print(len(clusters_map[cl]))
     for cl in sorted_clusters:
@@ -165,7 +170,7 @@ def save_clusters(clusters_map, split, data_path):
         col_data[col_name] = clusters_map[cl]
     df = pd.DataFrame.from_dict(col_data, orient='columns')
 
-    df.to_csv(f'{data_path}clusters-{split}.csv', index=False)
+    df.to_csv(f'{data_path}clusters.csv', index=False)
 
 
 if __name__ == '__main__':
@@ -183,10 +188,8 @@ if __name__ == '__main__':
     plot_correlation_matrix(df, chart_path)
     plot_clustered_nodes(df, adjacency, 6, chart_path)
 
-    filtered_df_train, filtered_df_val, filtered_df_test, clusters_map_train, clusters_map_val, clusters_map_test = select_top_correlated_sensors_split(df, 6, 6)
+    filtered_df_train, filtered_df_val, filtered_df_test, clusters_map = select_top_correlated_sensors_split(df, 6, 10)
     filtered_df_train.to_csv(f'{data_path}reduced_METR-LA-train.csv', index=False)
     filtered_df_val.to_csv(f'{data_path}reduced_METR-LA-val.csv', index=False)
     filtered_df_test.to_csv(f'{data_path}reduced_METR-LA-test.csv', index=False)
-    save_clusters(clusters_map_train, 'train', data_path)
-    save_clusters(clusters_map_val, 'val', data_path)
-    save_clusters(clusters_map_test, 'test', data_path)
+    save_clusters(clusters_map, data_path)
