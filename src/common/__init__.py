@@ -37,16 +37,20 @@ class SimpleRNN(nn.Module):
         y_pred = self.fc(last_hidden) 
         return y_pred
     
-def train_model(model, dataloader, num_epochs=10, lr=1e-3, device='cuda'):
+def train_model(model, train_dataloader, validation_dataloader, num_epochs=10, lr=1e-3, device='cpu'):
     model.to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=4, gamma=0.5)
     criterion = nn.MSELoss()
 
+    train_losses = []
+    validation_losses = []
+    validation_r2s = []
+
     for epoch in range(num_epochs):
         model.train()
         epoch_loss = 0.0
-        for x_batch, y_batch in dataloader:
+        for x_batch, y_batch in train_dataloader:
             x_batch = x_batch.to(device)
             y_batch = y_batch.to(device)
 
@@ -57,10 +61,14 @@ def train_model(model, dataloader, num_epochs=10, lr=1e-3, device='cuda'):
             optimizer.step()
 
             epoch_loss += loss.item() * x_batch.size(0)
+        val_loss, val_r2 = evaluate_model(model, validation_dataloader)
         scheduler.step()
-        avg_loss = epoch_loss / len(dataloader.dataset)
-        print(f"Epoch {epoch+1}/{num_epochs}, Loss: {avg_loss:.6f}")
-
+        avg_loss = epoch_loss / len(train_dataloader.dataset)
+        train_losses.append(avg_loss)
+        validation_losses.append(val_loss)
+        validation_r2s.append(val_r2)
+        #print(f"Epoch {epoch+1}/{num_epochs}, Loss: {avg_loss:.6f}")
+    return train_losses, validation_losses, validation_r2s
 
 def evaluate_model(model, dataloader, device='cpu'):
     model.to(device)
