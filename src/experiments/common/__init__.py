@@ -69,7 +69,7 @@ def train_model(model, train_dataloader, validation_dataloader, num_epochs=10, l
         train_losses.append(avg_loss)
         validation_losses.append(val_loss)
         validation_r2s.append(val_r2)
-        # print(f"Epoch {epoch+1}/{num_epochs}, Loss: {avg_loss:.6f}")
+        print(f"Epoch {epoch+1}/{num_epochs}, Train Loss: {avg_loss:.6f}, Val Loss: {val_loss:.6f}, Validation R2: {val_r2:.6f}")
     return train_losses, validation_losses, validation_r2s
 
 
@@ -102,3 +102,15 @@ def evaluate_model(model, dataloader, device='cpu'):
     r2 = r2_score(y_true, y_pred)
 
     return avg_loss, r2
+
+
+def get_device():
+    if torch.cuda.is_available():
+        print("Using CUDA")
+        return torch.device("cuda")
+    elif torch.backends.mps.is_available() and torch.backends.mps.is_built():
+        print("Using MPS (Apple GPU)")
+        return torch.device("mps")
+    else:
+        print("Using CPU")
+        return torch.device("cpu")
