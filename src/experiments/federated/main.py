@@ -5,11 +5,11 @@ if __name__ == '__main__':
 
     algorithms = ['fedavg'] #fedprox, scaffold
     data_folder = 'data/METR-LA'
-    max_seed = 1
+    max_seed = 4
     results_folder = 'results'
     batch_size = 64
     local_epochs = 2
-    global_rounds = 30
+    global_rounds = 15
     horizon = 1
     window_size = 20
 
