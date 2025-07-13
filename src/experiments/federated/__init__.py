@@ -15,7 +15,7 @@ class Simulator:
         self.batch_size = batch_size
         self.window_size = window_size
         self.data_folder = data_folder
-        self.results_folder = results_folder
+        self.results_path = f'{results_folder}/algorithm_{algorithm}_seed{seed}'
 
         self.simulation_data = pd.DataFrame(columns=['Round', 'TrainingLoss', 'ValidationLoss', 'ValidationR2']) # TODO add other metrics? MAE, MAPE
         self.train_data, self.val_data, self.test_data = self.load_data()
@@ -23,8 +23,21 @@ class Simulator:
         self.server = self.initialize_server()
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-    def start(self):
-        raise Exception("Not implemented")
+    def start(self, global_rounds):
+        for r in range(global_rounds):
+            print(f'Starting global round {r}')
+            self.notify_clients()
+            training_loss = self.clients_update()
+            self.notify_server()
+            self.server_update()
+            self.notify_clients()
+            validation_loss, validation_r2 = self.evaluate_clients()
+            self.export_data(r, training_loss, validation_loss, validation_r2)
+            print(f'Training loss: {training_loss} | Validation loss: {validation_loss} | Validation R2: {validation_r2}')
+            print('----------------------------------------------------------------------------------------------------------------------')
+        self.evaluate_clients(False)
+        self.save_data()
+
 
     def seed_everything(self):
         random.seed(self.seed)
@@ -56,7 +69,15 @@ class Simulator:
             loss, r2 = client.evaluate_model(validation=validation)
             losses.append(loss)
             r2s.append(r2)
-        return sum(losses) / len(losses), sum(r2s) / len(r2s)
+
+        loss = sum(losses) / len(losses)
+        r2 = sum(r2s) / len(r2s)
+
+        if not validation:
+            data = pd.DataFrame({'Loss': [loss], 'R2': [r2]})
+            data.to_csv(f'{self.results_path}-test.csv', index=False)
+
+        return loss, r2
 
     def notify_clients(self):
         for client in self.clients.values():
@@ -79,3 +100,23 @@ class Simulator:
         validation_data = pd.read_csv(f'{self.data_folder}/reduced_METR-LA-val.csv')
         test_data = pd.read_csv(f'{self.data_folder}/reduced_METR-LA-test.csv')
         return train_data, validation_data, test_data
+
+    def clients_update(self):
+        training_losses = []
+        for client_id, client in self.clients.items():
+            loss, _, _ = client.train() # TODO maybe can delete this multiple return
+            training_losses.append(loss)
+        return sum(training_losses) / len(training_losses)
+
+    def server_update(self):
+        self.server.aggregate()
+
+    def export_data(self, round, training_loss, validation_loss, validation_r2):
+        self.simulation_data = self.simulation_data._append(
+            {'Round': round, 'TrainingLoss': training_loss, 'ValidationLoss': validation_loss,
+             'ValidationR2': validation_r2},
+            ignore_index=True
+        )
+
+    def save_data(self):
+        self.simulation_data.to_csv(f'{self.results_path}.csv', index=False)
