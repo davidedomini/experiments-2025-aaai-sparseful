@@ -1,5 +1,4 @@
-from ctypes import windll
-
+from pathlib import Path
 from experiments.federated import Simulator
 
 if __name__ == '__main__':
@@ -10,12 +9,14 @@ if __name__ == '__main__':
     results_folder = 'results'
     batch_size = 64
     local_epochs = 2
-    global_rounds = 10
+    global_rounds = 30
     horizon = 1
     window_size = 20
 
+    data_output_directory = Path(results_folder)
+    data_output_directory.mkdir(parents=True, exist_ok=True)
+
     for seed in range(max_seed):
         for algorithm in algorithms:
-            for round in range(global_rounds):
-                sim = Simulator(algorithm, data_folder, seed, results_folder, batch_size, local_epochs)
-                sim.start()
+            sim = Simulator(algorithm, data_folder, seed, results_folder, batch_size, local_epochs, window_size, horizon)
+            sim.start(global_rounds)
