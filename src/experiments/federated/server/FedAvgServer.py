@@ -1,14 +1,13 @@
 import copy
 import torch
-from utils.FedUtils import initialize_model
+from experiments.federated.utils.FedUtils import initialize_model
 
 class FedAvgServer:
 
-    def __init__(self, dataset):
-        self.dataset = dataset
+    def __init__(self,):
         self.clients_data = {}
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        self._model = initialize_model(dataset).to(self.device)
+        self._model = initialize_model().to(self.device)
 
     def aggregate(self):
         """
