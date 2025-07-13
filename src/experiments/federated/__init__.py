@@ -44,7 +44,10 @@ class Simulator:
         return clients
 
     def initialize_server(self):
-        return FedAvgServer()
+        if self.algorithm == 'fedavg':
+            return FedAvgServer()
+        else:
+            raise Exception('Unknown algorithm! Please check :)')
 
     def evaluate_clients(self, validation = True):
         losses = []
