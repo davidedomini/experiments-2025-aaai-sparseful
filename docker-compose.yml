@@ -1,0 +1,13 @@
+services:
+
+  experiment-acsos-ae:
+    hostname: simulator
+    image: davidedomini99/experiments-2025-aaai-fedavg-metrla:1.0.0
+    volumes:
+      - davide.domini-volume:/data
+    environment:
+      DATA_OWNER: 1000:1000
+
+volumes:
+  davide.domini-volume:
+    external: true
