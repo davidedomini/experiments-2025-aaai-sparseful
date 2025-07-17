@@ -21,8 +21,13 @@ class FedAvgClient:
         self.validation_set = validation_data
         self.test_set = test_data
         self.preprocess_data()
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.device = 'cpu' #torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self._model = initialize_model().to(self.device)
+
+        print(f'Client {self.mid} -- Training Data {len(self.training_set)}')
+        print(f'Client {self.mid} -- Validation Data {len(self.validation_set)}')
+        print(f'Client {self.mid} -- Test Data {len(self.test_set)}')
+        print('----------------------------------------------------------------------------------------------------------------------')
 
     def train(self):
         train_dataloader = DataLoader(self.training_set, batch_size=self.batch_size, shuffle=True)

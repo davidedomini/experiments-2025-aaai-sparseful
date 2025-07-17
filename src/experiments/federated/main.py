@@ -6,13 +6,13 @@ if __name__ == '__main__':
     algorithms = ['fedavg']
     data_folder = 'data/METR-LA'
     max_seed = 5
-    results_folder = 'results-metr-la'
+    results_folder = 'results-metr-la-zone3'
     batch_size = 64
     local_epochs = 2
     global_rounds = 20
     horizon = 1
     window_size = 20
-
+ 
     data_output_directory = Path(results_folder)
     data_output_directory.mkdir(parents=True, exist_ok=True)
 

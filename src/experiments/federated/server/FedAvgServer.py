@@ -6,7 +6,7 @@ class FedAvgServer:
 
     def __init__(self,):
         self.clients_data = {}
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.device = 'cpu' #torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self._model = initialize_model().to(self.device)
 
     def aggregate(self):

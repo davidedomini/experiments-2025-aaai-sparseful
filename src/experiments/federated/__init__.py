@@ -21,7 +21,7 @@ class Simulator:
         self.train_data, self.val_data, self.test_data = self.load_data()
         self.clients = self.initialize_clients()
         self.server = self.initialize_server()
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.device = 'cpu' #torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     def start(self, global_rounds):
         for r in range(global_rounds):
@@ -51,7 +51,7 @@ class Simulator:
         ids = list(self.train_data.columns)
         clients = {
             client_id :
-            FedAvgClient(client_id, self.train_data[[client_id]], self.train_data[[client_id]], self.train_data[[client_id]], self.batch_size, self.epochs, self.window_size, self.horizon)
+            FedAvgClient(client_id, self.train_data[[client_id]], self.val_data[[client_id]], self.test_data[[client_id]], self.batch_size, self.epochs, self.window_size, self.horizon)
             for client_id in ids
         }
         return clients
@@ -95,10 +95,32 @@ class Simulator:
                 client_data[client_id] = {'model': client.model, 'client_control_state': client.client_control_state}
         self.server.receive_client_update(client_data)
 
+    def filter_data(self, df):
+        clusters = pd.read_csv(f'{self.data_folder}/clusters-zone1.csv')
+        ids = [int(i) for i in set(clusters.values.ravel())]
+        return df[ids]
+
+
     def load_data(self):
-        train_data = pd.read_csv(f'{self.data_folder}/reduced_METR-LA-train.csv')
-        validation_data = pd.read_csv(f'{self.data_folder}/reduced_METR-LA-val.csv')
-        test_data = pd.read_csv(f'{self.data_folder}/reduced_METR-LA-test.csv')
+
+        data = pd.read_hdf(f'{self.data_folder}/METR-LA.h5')
+        data.columns = data.columns.astype(int)
+
+        n_rows = len(data)
+        train_end = int(0.7 * n_rows)
+        val_end = int(0.85 * n_rows)
+
+        data = self.filter_data(data)
+
+        train_data = data.iloc[:train_end].reset_index(drop=True)
+        validation_data = data.iloc[train_end:val_end].reset_index(drop=True)
+        test_data = data.iloc[val_end:].reset_index(drop=True)
+
+        # train_data = pd.read_csv(f'{self.data_folder}/reduced_METR-LA-train.csv')
+        # validation_data = pd.read_csv(f'{self.data_folder}/reduced_METR-LA-val.csv')
+        # test_data = pd.read_csv(f'{self.data_folder}/reduced_METR-LA-test.csv')
+
+
         return train_data, validation_data, test_data
 
     def clients_update(self):

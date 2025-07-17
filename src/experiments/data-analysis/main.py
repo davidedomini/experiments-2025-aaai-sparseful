@@ -188,7 +188,7 @@ if __name__ == '__main__':
     plot_correlation_matrix(df, chart_path)
     plot_clustered_nodes(df, adjacency, 6, chart_path)
 
-    filtered_df_train, filtered_df_val, filtered_df_test, clusters_map = select_top_correlated_sensors_split(df, 6, 10)
+    filtered_df_train, filtered_df_val, filtered_df_test, clusters_map = select_top_correlated_sensors_split(df, 4, 10)
     filtered_df_train.to_csv(f'{data_path}reduced_METR-LA-train.csv', index=False)
     filtered_df_val.to_csv(f'{data_path}reduced_METR-LA-val.csv', index=False)
     filtered_df_test.to_csv(f'{data_path}reduced_METR-LA-test.csv', index=False)
