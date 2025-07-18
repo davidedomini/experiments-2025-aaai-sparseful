@@ -1,7 +1,7 @@
 import torch
 import pandas as pd
 import torch.nn as nn
-from sklearn.metrics import r2_score
+from sklearn.metrics import r2_score, mean_absolute_error, mean_absolute_percentage_error
 from torch.utils.data import Dataset
 
 
@@ -48,6 +48,8 @@ def train_model(model, train_dataloader, validation_dataloader, num_epochs=10, l
     train_losses = []
     validation_losses = []
     validation_r2s = []
+    validation_maes = []
+    validation_mapes = []
 
     for epoch in range(num_epochs):
         model.train()
@@ -63,14 +65,16 @@ def train_model(model, train_dataloader, validation_dataloader, num_epochs=10, l
             optimizer.step()
 
             epoch_loss += loss.item() * x_batch.size(0)
-        val_loss, val_r2 = evaluate_model(model, validation_dataloader)
+        val_loss, val_r2, val_mae, val_mape = evaluate_model(model, validation_dataloader)
         scheduler.step()
         avg_loss = epoch_loss / len(train_dataloader.dataset)
         train_losses.append(avg_loss)
         validation_losses.append(val_loss)
         validation_r2s.append(val_r2)
+        validation_maes.append(val_mae)
+        validation_mapes.append(val_mape)
         #print(f"Epoch {epoch+1}/{num_epochs}, Train Loss: {avg_loss:.6f}, Val Loss: {val_loss:.6f}, Validation R2: {val_r2:.6f}")
-    return train_losses, validation_losses, validation_r2s
+    return train_losses, validation_losses, validation_r2s, validation_maes, validation_mapes
 
 
 def evaluate_model(model, dataloader, device='cpu'):
@@ -100,8 +104,10 @@ def evaluate_model(model, dataloader, device='cpu'):
     y_pred = torch.cat(all_preds, dim=0).numpy()
 
     r2 = r2_score(y_true, y_pred)
+    mae = mean_absolute_error(y_true, y_pred)
+    mape = mean_absolute_percentage_error(y_true, y_pred)
 
-    return avg_loss, r2
+    return avg_loss, r2, mae, mape
 
 
 def get_device():

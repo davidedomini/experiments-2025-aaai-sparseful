@@ -18,7 +18,7 @@ class Simulator:
         self.data_folder = data_folder
         self.results_path = f'{results_folder}/clusters-{clusters}/algorithm_{algorithm}_seed{seed}'
 
-        self.simulation_data = pd.DataFrame(columns=['Round', 'TrainingLoss', 'ValidationLoss', 'ValidationR2']) # TODO add other metrics? MAE, MAPE
+        self.simulation_data = pd.DataFrame(columns=['Round', 'TrainingLoss', 'ValidationLoss', 'ValidationR2', 'ValidationMAE', 'ValidationMAPE'])
         self.train_data, self.val_data, self.test_data = self.load_data()
         self.clients = self.initialize_clients()
         self.server = self.initialize_server()
@@ -32,8 +32,8 @@ class Simulator:
             self.notify_server()
             self.server_update()
             self.notify_clients()
-            validation_loss, validation_r2 = self.evaluate_clients()
-            self.export_data(r, training_loss, validation_loss, validation_r2)
+            validation_loss, validation_r2, validation_mae, validation_mape = self.evaluate_clients()
+            self.export_data(r, training_loss, validation_loss, validation_r2, validation_mae, validation_mape)
             # print(f'Training loss: {training_loss} | Validation loss: {validation_loss} | Validation R2: {validation_r2}')
             # print('----------------------------------------------------------------------------------------------------------------------')
         self.evaluate_clients(False)
@@ -66,19 +66,25 @@ class Simulator:
     def evaluate_clients(self, validation = True):
         losses = []
         r2s = []
+        maes = []
+        mapes = []
         for client in self.clients.values():
-            loss, r2 = client.evaluate_model(validation=validation)
+            loss, r2, mae, mape = client.evaluate_model(validation=validation)
             losses.append(loss)
             r2s.append(r2)
+            maes.append(mae)
+            mapes.append(mape)
 
         loss = sum(losses) / len(losses)
         r2 = sum(r2s) / len(r2s)
+        mae = sum(maes) / len(maes)
+        mape = sum(mapes) / len(mapes)
 
         if not validation:
-            data = pd.DataFrame({'Loss': [loss], 'R2': [r2]})
+            data = pd.DataFrame({'Loss': [loss], 'R2': [r2], 'MAE': [mae], 'MAPE': [mape]} )
             data.to_csv(f'{self.results_path}-test.csv', index=False)
 
-        return loss, r2
+        return loss, r2, mae, mape
 
     def notify_clients(self):
         for client in self.clients.values():
@@ -123,17 +129,17 @@ class Simulator:
     def clients_update(self):
         training_losses = []
         for client_id, client in self.clients.items():
-            loss, _, _ = client.train() # TODO maybe can delete this multiple return
+            loss, _, _, _, _ = client.train()
             training_losses.append(loss)
         return sum(training_losses) / len(training_losses)
 
     def server_update(self):
         self.server.aggregate()
 
-    def export_data(self, round, training_loss, validation_loss, validation_r2):
+    def export_data(self, round, training_loss, validation_loss, validation_r2, validation_mae, validation_mape):
         self.simulation_data = self.simulation_data._append(
             {'Round': round, 'TrainingLoss': training_loss, 'ValidationLoss': validation_loss,
-             'ValidationR2': validation_r2},
+             'ValidationR2': validation_r2, 'ValidationMAE': validation_mae, 'ValidationMAPE': validation_mape},
             ignore_index=True
         )
 

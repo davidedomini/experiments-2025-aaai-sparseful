@@ -33,6 +33,8 @@ if __name__ == '__main__':
     clusters_subset  = hyperparams['cluster'][0]
     if clusters_subset == 0:
         clusters_subset = 'all'
+
+    # clusters_subset = 1
     for seed in range(max_seed):
         for algorithm in algorithms:
             Path(f'{results_folder}/clusters-{clusters_subset}').mkdir(parents=True, exist_ok=True)

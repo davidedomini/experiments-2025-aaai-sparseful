@@ -32,16 +32,16 @@ class FedAvgClient:
     def train(self):
         train_dataloader = DataLoader(self.training_set, batch_size=self.batch_size, shuffle=True)
         val_dataloader = DataLoader(self.validation_set, batch_size=self.batch_size, shuffle=True)
-        train_losses, validation_losses, validation_r2s = train_model(self._model, train_dataloader, val_dataloader, self.epochs, self.lr, self.device)
-        return sum(train_losses) / len(train_losses), sum(validation_losses) / len(validation_losses), sum(validation_r2s) / len(validation_r2s)
+        train_losses, validation_losses, validation_r2s, validation_maes, validation_mapes = train_model(self._model, train_dataloader, val_dataloader, self.epochs, self.lr, self.device)
+        return sum(train_losses) / len(train_losses), sum(validation_losses) / len(validation_losses), sum(validation_r2s) / len(validation_r2s), sum(validation_maes) / len(validation_maes), sum(validation_mapes) / len(validation_mapes)
 
     def evaluate_model(self, validation = True):
         if validation:
             dataloader = DataLoader(self.validation_set, batch_size=self.batch_size, shuffle=True)
         else:
             dataloader = DataLoader(self.test_set, batch_size=self.batch_size, shuffle=True)
-        loss, r2 = evaluate_model(self._model, dataloader)
-        return loss, r2
+        loss, r2, mae, mape = evaluate_model(self._model, dataloader)
+        return loss, r2, mae, mape
 
     def notify_updates(self, global_model):
         self._model.load_state_dict(copy.deepcopy(global_model.state_dict()))
