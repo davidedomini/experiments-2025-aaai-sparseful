@@ -1,6 +1,6 @@
 services:
 
-  experiment-sparseful-metrla-all:
+  experiment-metrla-all:
     hostname: simulator
     image: davidedomini99/experiments-2025-aaai-fedavg-metrla:1.0.1
     volumes:
@@ -11,7 +11,7 @@ services:
         all: 
           cluster: [0]
 
-  experiment-sparseful-metrla-c1:
+  experiment-metrla-c1:
     hostname: simulator
     image: davidedomini99/experiments-2025-aaai-fedavg-metrla:1.0.1
     volumes:
@@ -22,7 +22,7 @@ services:
         all: 
           cluster: [1]
 
-  experiment-sparseful-metrla-c2:
+  experiment-metrla-c2:
     hostname: simulator
     image: davidedomini99/experiments-2025-aaai-fedavg-metrla:1.0.1
     volumes:
@@ -33,7 +33,7 @@ services:
         all: 
           cluster: [2]
 
-  experiment-sparseful-metrla-c3:
+  experiment-metrla-c3:
     hostname: simulator
     image: davidedomini99/experiments-2025-aaai-fedavg-metrla:1.0.1
     volumes:
@@ -44,7 +44,7 @@ services:
         all: 
           cluster: [3]
 
-  experiment-sparseful-metrla-c4:
+  experiment-metrla-c4:
     hostname: simulator
     image: davidedomini99/experiments-2025-aaai-fedavg-metrla:1.0.1
     volumes:
