@@ -1,12 +1,59 @@
 services:
 
-  experiment-acsos-ae:
+  experiment-sparseful-metrla-all:
     hostname: simulator
-    image: davidedomini99/experiments-2025-aaai-fedavg-metrla:1.0.0
+    image: davidedomini99/experiments-2025-aaai-fedavg-metrla:1.0.1
     volumes:
       - davide.domini-volume:/data
     environment:
       DATA_OWNER: 1000:1000
+      LEARNING_HYPERPARAMETERS: |
+        all: 
+          cluster: [0]
+
+  experiment-sparseful-metrla-c1:
+    hostname: simulator
+    image: davidedomini99/experiments-2025-aaai-fedavg-metrla:1.0.1
+    volumes:
+      - davide.domini-volume:/data
+    environment:
+      DATA_OWNER: 1000:1000
+      LEARNING_HYPERPARAMETERS: |
+        all: 
+          cluster: [1]
+
+  experiment-sparseful-metrla-c2:
+    hostname: simulator
+    image: davidedomini99/experiments-2025-aaai-fedavg-metrla:1.0.1
+    volumes:
+      - davide.domini-volume:/data
+    environment:
+      DATA_OWNER: 1000:1000
+      LEARNING_HYPERPARAMETERS: |
+        all: 
+          cluster: [2]
+
+  experiment-sparseful-metrla-c3:
+    hostname: simulator
+    image: davidedomini99/experiments-2025-aaai-fedavg-metrla:1.0.1
+    volumes:
+      - davide.domini-volume:/data
+    environment:
+      DATA_OWNER: 1000:1000
+      LEARNING_HYPERPARAMETERS: |
+        all: 
+          cluster: [3]
+
+  experiment-sparseful-metrla-c4:
+    hostname: simulator
+    image: davidedomini99/experiments-2025-aaai-fedavg-metrla:1.0.1
+    volumes:
+      - davide.domini-volume:/data
+    environment:
+      DATA_OWNER: 1000:1000
+      LEARNING_HYPERPARAMETERS: |
+        all: 
+          cluster: [4]
 
 volumes:
   davide.domini-volume:

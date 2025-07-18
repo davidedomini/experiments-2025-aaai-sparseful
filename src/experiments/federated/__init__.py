@@ -7,15 +7,16 @@ from experiments.federated.client.FedAvgClient import FedAvgClient
 
 class Simulator:
 
-    def __init__(self, algorithm, data_folder, seed, results_folder, batch_size, epochs, window_size, horizon):
+    def __init__(self, algorithm, data_folder, seed, results_folder, batch_size, epochs, window_size, horizon, clusters = 'all'):
         self.seed = seed
         self.epochs = epochs
         self.horizon = horizon
+        self.clusters = clusters
         self.algorithm = algorithm
         self.batch_size = batch_size
         self.window_size = window_size
         self.data_folder = data_folder
-        self.results_path = f'{results_folder}/algorithm_{algorithm}_seed{seed}'
+        self.results_path = f'{results_folder}/clusters-{clusters}/algorithm_{algorithm}_seed{seed}'
 
         self.simulation_data = pd.DataFrame(columns=['Round', 'TrainingLoss', 'ValidationLoss', 'ValidationR2']) # TODO add other metrics? MAE, MAPE
         self.train_data, self.val_data, self.test_data = self.load_data()
@@ -25,7 +26,7 @@ class Simulator:
 
     def start(self, global_rounds):
         for r in range(global_rounds):
-            print(f'Starting global round {r}')
+            # print(f'Starting global round {r}')
             self.notify_clients()
             training_loss = self.clients_update()
             self.notify_server()
@@ -33,8 +34,8 @@ class Simulator:
             self.notify_clients()
             validation_loss, validation_r2 = self.evaluate_clients()
             self.export_data(r, training_loss, validation_loss, validation_r2)
-            print(f'Training loss: {training_loss} | Validation loss: {validation_loss} | Validation R2: {validation_r2}')
-            print('----------------------------------------------------------------------------------------------------------------------')
+            # print(f'Training loss: {training_loss} | Validation loss: {validation_loss} | Validation R2: {validation_r2}')
+            # print('----------------------------------------------------------------------------------------------------------------------')
         self.evaluate_clients(False)
         self.save_data()
 
@@ -96,10 +97,11 @@ class Simulator:
         self.server.receive_client_update(client_data)
 
     def filter_data(self, df):
-        clusters = pd.read_csv(f'{self.data_folder}/clusters-zone1.csv')
-        ids = [int(i) for i in set(clusters.values.ravel())]
+        clusters_ids = pd.read_csv(f'{self.data_folder}/clusters-by-sim.csv')
+        if not self.clusters == 'all':
+            clusters_ids = clusters_ids[[f'cluster-{self.clusters}']]
+        ids = [int(i) for i in set(clusters_ids.values.ravel())]
         return df[ids]
-
 
     def load_data(self):
 
@@ -115,11 +117,6 @@ class Simulator:
         train_data = data.iloc[:train_end].reset_index(drop=True)
         validation_data = data.iloc[train_end:val_end].reset_index(drop=True)
         test_data = data.iloc[val_end:].reset_index(drop=True)
-
-        # train_data = pd.read_csv(f'{self.data_folder}/reduced_METR-LA-train.csv')
-        # validation_data = pd.read_csv(f'{self.data_folder}/reduced_METR-LA-val.csv')
-        # test_data = pd.read_csv(f'{self.data_folder}/reduced_METR-LA-test.csv')
-
 
         return train_data, validation_data, test_data
 
