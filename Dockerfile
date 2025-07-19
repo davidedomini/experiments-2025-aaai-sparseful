@@ -3,6 +3,7 @@ RUN mkdir -p /experiment
 VOLUME "davide.domini-volume"
 ENV DATA_DIR=/data
 WORKDIR /experiment
+ENV PYTHONPATH="/experiment/src"
 COPY requirements.txt /experiment
 RUN python3 -m pip install -r requirements.txt
 COPY . /experiment
