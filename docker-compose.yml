@@ -1,54 +1,54 @@
 services:
 
-  experiment-metrla-all:
-    hostname: simulator
-    image: davidedomini99/experiments-2025-aaai-fedavg-metrla:1.0.1
+  experiment-pems-all:
+    hostname: pems-all
+    image: davidedomini99/experiments-2025-aaai-fedavg-pems:1.0.0
     volumes:
-      - davide.domini-volume:/data
+      - davide.domini-volume:/experiment/data
     environment:
       DATA_OWNER: 1000:1000
       LEARNING_HYPERPARAMETERS: |
         all: 
           cluster: [0]
 
-  experiment-metrla-c1:
-    hostname: simulator
-    image: davidedomini99/experiments-2025-aaai-fedavg-metrla:1.0.1
+  experiment-pems-c1:
+    hostname: pems-c1
+    image: davidedomini99/experiments-2025-aaai-fedavg-pems:1.0.0
     volumes:
-      - davide.domini-volume:/data
+      - davide.domini-volume:/experiment/data
     environment:
       DATA_OWNER: 1000:1000
       LEARNING_HYPERPARAMETERS: |
         all: 
           cluster: [1]
 
-  experiment-metrla-c2:
-    hostname: simulator
-    image: davidedomini99/experiments-2025-aaai-fedavg-metrla:1.0.1
+  experiment-pems-c2:
+    hostname: pems-c2
+    image: davidedomini99/experiments-2025-aaai-fedavg-pems:1.0.0
     volumes:
-      - davide.domini-volume:/data
+      - davide.domini-volume:/experiment/data
     environment:
       DATA_OWNER: 1000:1000
       LEARNING_HYPERPARAMETERS: |
         all: 
           cluster: [2]
 
-  experiment-metrla-c3:
-    hostname: simulator
-    image: davidedomini99/experiments-2025-aaai-fedavg-metrla:1.0.1
+  experiment-pems-c3:
+    hostname: pems-c3
+    image: davidedomini99/experiments-2025-aaai-fedavg-pems:1.0.0
     volumes:
-      - davide.domini-volume:/data
+      - davide.domini-volume:/experiment/data
     environment:
       DATA_OWNER: 1000:1000
       LEARNING_HYPERPARAMETERS: |
         all: 
           cluster: [3]
 
-  experiment-metrla-c4:
-    hostname: simulator
-    image: davidedomini99/experiments-2025-aaai-fedavg-metrla:1.0.1
+  experiment-pems-c4:
+    hostname: pems-c4
+    image: davidedomini99/experiments-2025-aaai-fedavg-pems:1.0.0
     volumes:
-      - davide.domini-volume:/data
+      - davide.domini-volume:/experiment/data
     environment:
       DATA_OWNER: 1000:1000
       LEARNING_HYPERPARAMETERS: |
