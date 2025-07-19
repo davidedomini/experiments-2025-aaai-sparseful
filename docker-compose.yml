@@ -44,16 +44,6 @@ services:
         all: 
           cluster: [3]
 
-  experiment-pems-c4:
-    hostname: pems-c4
-    image: davidedomini99/experiments-2025-aaai-fedavg-pems:1.0.0
-    volumes:
-      - davide.domini-volume:/experiment/data
-    environment:
-      DATA_OWNER: 1000:1000
-      LEARNING_HYPERPARAMETERS: |
-        all: 
-          cluster: [4]
 
 volumes:
   davide.domini-volume:
