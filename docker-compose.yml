@@ -2,7 +2,7 @@ services:
 
   experiment-pems-all:
     hostname: pems-all
-    image: davidedomini99/experiments-2025-aaai-fedavg-pems:1.0.0
+    image: davidedomini99/experiments-2025-aaai-fedavg-pems:1.0.1
     volumes:
       - davide.domini-volume:/experiment/data
     environment:
@@ -13,7 +13,7 @@ services:
 
   experiment-pems-c1:
     hostname: pems-c1
-    image: davidedomini99/experiments-2025-aaai-fedavg-pems:1.0.0
+    image: davidedomini99/experiments-2025-aaai-fedavg-pems:1.0.1
     volumes:
       - davide.domini-volume:/experiment/data
     environment:
@@ -24,7 +24,7 @@ services:
 
   experiment-pems-c2:
     hostname: pems-c2
-    image: davidedomini99/experiments-2025-aaai-fedavg-pems:1.0.0
+    image: davidedomini99/experiments-2025-aaai-fedavg-pems:1.0.1
     volumes:
       - davide.domini-volume:/experiment/data
     environment:
@@ -35,7 +35,7 @@ services:
 
   experiment-pems-c3:
     hostname: pems-c3
-    image: davidedomini99/experiments-2025-aaai-fedavg-pems:1.0.0
+    image: davidedomini99/experiments-2025-aaai-fedavg-pems:1.0.1
     volumes:
       - davide.domini-volume:/experiment/data
     environment:
