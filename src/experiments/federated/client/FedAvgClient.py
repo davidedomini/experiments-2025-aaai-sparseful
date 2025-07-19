@@ -51,20 +51,20 @@ class FedAvgClient:
         return self._model
 
     def preprocess_data(self):
-        scaler = StandardScaler()
-        scaler.fit(self.training_set.values)
-
-        self.training_set = pd.DataFrame(scaler.transform(self.training_set.values),
-                                       index=self.training_set.index,
-                                       columns=self.training_set.columns)
-
-        self.validation_set = pd.DataFrame(scaler.transform(self.validation_set.values),
-                                     index=self.validation_set.index,
-                                     columns=self.validation_set.columns)
-
-        self.test_set  = pd.DataFrame(scaler.transform(self.test_set.values),
-                                      index=self.test_set.index,
-                                      columns=self.test_set.columns)
+        # scaler = StandardScaler()
+        # scaler.fit(self.training_set.values)
+        #
+        # self.training_set = pd.DataFrame(scaler.transform(self.training_set.values),
+        #                                index=self.training_set.index,
+        #                                columns=self.training_set.columns)
+        #
+        # self.validation_set = pd.DataFrame(scaler.transform(self.validation_set.values),
+        #                              index=self.validation_set.index,
+        #                              columns=self.validation_set.columns)
+        #
+        # self.test_set  = pd.DataFrame(scaler.transform(self.test_set.values),
+        #                               index=self.test_set.index,
+        #                               columns=self.test_set.columns)
 
         self.training_set = TimeSeriesDataset(self.training_set, window_size=self.window_size, horizon=self.horizon)
         self.validation_set = TimeSeriesDataset(self.validation_set, window_size=self.window_size, horizon=self.horizon)

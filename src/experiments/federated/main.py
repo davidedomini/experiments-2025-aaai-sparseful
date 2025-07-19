@@ -17,12 +17,14 @@ def get_hyperparameters():
 if __name__ == '__main__':
 
     algorithms = ['fedavg']
-    data_folder = 'data/METR-LA'
-    max_seed = 5
-    results_folder = 'results'
+    # data_folder = 'data/METR-LA'
+    data_folder = 'data/PEMS04'
+    dataset_name = 'PEMS04.csv'
+    max_seed = 1
+    results_folder = 'results-PEMS04'
     batch_size = 64
     local_epochs = 2
-    global_rounds = 20
+    global_rounds = 15
     horizon = 1
     window_size = 20
  
@@ -33,10 +35,12 @@ if __name__ == '__main__':
     clusters_subset  = hyperparams['cluster'][0]
     if clusters_subset == 0:
         clusters_subset = 'all'
+    #
+    # clusters_subset = 'all'
 
     # clusters_subset = 1
     for seed in range(max_seed):
         for algorithm in algorithms:
             Path(f'{results_folder}/clusters-{clusters_subset}').mkdir(parents=True, exist_ok=True)
-            sim = Simulator(algorithm, data_folder, seed, results_folder, batch_size, local_epochs, window_size, horizon, clusters_subset)
+            sim = Simulator(algorithm, data_folder, dataset_name, seed, results_folder, batch_size, local_epochs, window_size, horizon, clusters_subset)
             sim.start(global_rounds)
