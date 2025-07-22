@@ -31,16 +31,18 @@ if __name__ == '__main__':
     data_output_directory = Path(results_folder)
     data_output_directory.mkdir(parents=True, exist_ok=True)
 
-    experiment_name, hyperparams = get_hyperparameters()
-    clusters_subset  = hyperparams['cluster'][0]
-    if clusters_subset == 0:
-        clusters_subset = 'all'
+    # experiment_name, hyperparams = get_hyperparameters()
+    # clusters_subset  = hyperparams['cluster'][0]
+    # if clusters_subset == 0:
+    #     clusters_subset = 'all'
     
-    # clusters_subset = 'all'
+    clusters_subsets = ['all', 1, 2, 3]
 
     # clusters_subset = 1
     for seed in range(max_seed):
-        for algorithm in algorithms:
-            Path(f'{results_folder}/clusters-{clusters_subset}').mkdir(parents=True, exist_ok=True)
-            sim = Simulator(algorithm, data_folder, dataset_name, seed, results_folder, batch_size, local_epochs, window_size, horizon, clusters_subset)
-            sim.start(global_rounds)
+        for cluster_subset in clusters_subsets:
+            for algorithm in algorithms:
+                print(f'Starting simulation for algorithm {algorithm}, seed {seed}, clusters {cluster_subset}')
+                Path(f'{results_folder}/clusters-{cluster_subset}').mkdir(parents=True, exist_ok=True)
+                sim = Simulator(algorithm, data_folder, dataset_name, seed, results_folder, batch_size, local_epochs, window_size, horizon, cluster_subset)
+                sim.start(global_rounds)
